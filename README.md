@@ -10,7 +10,6 @@ sudo yum -y install git
 git clone https://github.com/kookaa/ruby-provisioning.git
 cd ruby-provisioning
 ./run.sh
-exec $SHELL -l
 cd ~/workspace
 bundle init
 vi Gemfile
