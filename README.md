@@ -11,6 +11,21 @@ git clone https://github.com/kookaa/ruby-provisioning.git
 cd ruby-provisioning
 ./run.sh
 exec $SHELL -l
+cd ~/workspace
+bundle init
+vi Gemfile
+# rails の#をはずす
+#:wq
+bundle install
+bundle exec rails new xxxapp --skip-bundle
+cd xxxapp
+vi Gemfile
+#'therubyracer'の#をはずす
+#:wq
+bundle install
+bundle exec rails g model Project title
+rake db:migrate
+bundle exec rails s -b 192.168.33.10
 ```
 
 If you need to update the environment, please follow instructions below.
