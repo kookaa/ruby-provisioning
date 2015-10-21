@@ -25,6 +25,7 @@ bundle install
 bundle exec rails g model Project title
 rake db:migrate
 bundle exec rails s -b 192.168.33.10
+# web browsing http://192.168.33.10:3000/
 ```
 
 If you need to update the environment, please follow instructions below.
