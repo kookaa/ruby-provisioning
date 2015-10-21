@@ -103,7 +103,7 @@
 
     # gem
     - name: gem install bundler
-      gem: name=bundler state=present executable=/home/vagrant/.rbenv/shims/gem
+      gem: name=bundler state=present executable=/home/vagrant/.rbenv/shims/gem user_install=False
 
     # Synced Folders
     - name: mkdir Synced Folders
