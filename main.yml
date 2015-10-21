@@ -1,0 +1,126 @@
+---
+- hosts: 127.0.0.1
+  sudo: yes
+  vars:
+    - ruby_version: 2.2.2
+  tasks:
+    - name: yum update
+      yum: name=* state=latest
+    - name: disable iptables
+      service: name=iptables state=stopped enabled=no
+    - name: install libselinux-python
+      yum: name=libselinux-python state=latest
+    - name: remove localtime
+      file: path=/etc/localtime state=absent
+    - name: change timezone
+      file: src=/usr/share/zoneinfo/Asia/Tokyo dest=/etc/localtime state=link force=yes mode=0644
+    - name: change locale
+      command: sed -i "s/en_US/ja_JP/g" /etc/sysconfig/i18n
+    - name: install remi repository
+      command: rpm -Uvh --force http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+    - name: install man
+      yum: name=man state=latest
+    - name: install vim
+      yum: name=vim state=latest
+    - name: install tig
+      yum: name=tig state=latest
+    - name: install apache
+      yum: name=httpd state=latest
+    - name: start apache and enabled
+      service: name=httpd state=started enabled=yes
+    - name: change owner
+      file: dest=/var/www/html owner=vagrant recurse=yes
+    - name: install gd-last
+      yum: name=gd-last enablerepo=remi state=latest
+    - name: install mysql
+      yum: name=mysql-server enablerepo=remi,epel state=present
+    - name: copy my.cnf.custom
+      copy: src=my.cnf.custom dest=/etc/my.cnf backup=yes
+    - name: start mysql and enabled
+      service: name=mysqld state=started enabled=yes
+    - name: install ruby dependencies
+      yum: name={{item}} enablerepo=remi,epel state=present
+      with_items:
+        - gcc
+        - openssl-devel
+        - rpm-build
+        - gcc-c++
+        - bzip2
+        - libtool
+        - zlib
+        - zlib-devel
+        - httpd-devel
+        - openssl-devel
+        - curl-devel
+        - ncurses-devel
+        - gdbm-devel
+        - readline
+        - readline-devel
+        - sqlite-devel
+        - libyaml-devel
+        - libffi-devel
+        - bison
+
+    - name: check rbenv installed
+      command: test -x /home/vagrant/.rbenv
+      register: rbenv_present
+      ignore_errors: yes
+      sudo: no
+    - name: git clone rbenv
+      git: repo=https://github.com/sstephenson/rbenv.git dest=/home/vagrant/.rbenv
+      when: rbenv_present.rc != 0
+      sudo: no
+    - name: update bash_profile
+      copy: src=bash_profile.custom dest=/home/vagrant/.bash_profile backup=yes
+      sudo: no 
+
+    - name: check ruby-build installed
+      command: test -x /home/vagrant/.rbenv/plugins/ruby-build
+      register: rbuild_present
+      ignore_errors: yes
+      sudo: no
+    - name: git clone ruby-build
+      git: repo=https://github.com/sstephenson/ruby-build.git dest=/home/vagrant/.rbenv/plugins/ruby-build
+      when: rbuild_present.rc != 0
+      sudo: no
+
+    - name: update rbenv
+      command: git pull --rebase chdir=/home/vagrant/.rbenv
+      sudo: no
+    - name: update ruby-build
+      command: git pull --rebase chdir=/home/vagrant/.rbenv/plugins/ruby-build
+      sudo: no
+
+    - name: check ruby installed
+      shell: /bin/bash -lc "rbenv versions | grep {{ruby_version}}"
+      register: ruby_installed
+      ignore_errors: yes
+      sudo: no
+    - name: install ruby
+      shell: /bin/bash -lc "rbenv install {{ruby_version}} && rbenv rehash && rbenv global {{ruby_version}}"
+      when: ruby_installed.rc != 0
+      sudo: no
+
+    # gem
+    - name: gem install bundler
+      gem: name=bundler state=present executable=/home/vagrant/.rbenv/shims/gem
+
+    # Synced Folders
+    - name: mkdir Synced Folders
+      file: path=/vagrant/workspace state=directory mode=0775
+
+    - name: ln Synced Folders
+      file: src=/vagrant/workspace dest=/home/vagrant/workspace state=link force=yes
+
+    # dotfiles
+    - name: mkdir vim temp
+      file: path=/home/vagrant/.vim/tmp state=directory mode=0777
+    - name: copy vimrc.custom
+      copy: src=vimrc.custom dest=/home/vagrant/.vimrc backup=yes
+    - name: copy gitconfig.custom
+      copy: src=gitconfig.custom dest=/home/vagrant/.gitconfig backup=yes
+
+  handlers:
+    - name: restart apache
+      service: name=httpd state=restarted
+
