@@ -8,6 +8,8 @@
       yum: name=* state=latest
     - name: disable iptables
       service: name=iptables state=stopped enabled=no
+    - name: update kernel
+      service: name=http://vault.centos.org/6.4/cr/x86_64/Packages/kernel-devel-2.6.32-431.el6.x86_64.rpm state=latest
     - name: install libselinux-python
       yum: name=libselinux-python state=latest
     - name: remove localtime
