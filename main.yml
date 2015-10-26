@@ -9,7 +9,13 @@
     - name: disable iptables
       service: name=iptables state=stopped enabled=no
     - name: update kernel
-      yum: name=http://vault.centos.org/6.4/cr/x86_64/Packages/kernel-devel-2.6.32-431.el6.x86_64.rpm
+      yum: name=kernel state=latest
+    - name: update kernel-devel
+      yum: name=kernel-devel state=latest
+    - name: update kernel-devel
+      yum: name="kernel-devel-{{ ansible_kernel }}"
+    - name: install dkms
+      yum: name=dkms
     - name: install libselinux-python
       yum: name=libselinux-python state=latest
     - name: remove localtime
