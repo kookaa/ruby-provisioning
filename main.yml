@@ -128,6 +128,11 @@
     - name: copy gitconfig.custom
       copy: src=gitconfig.custom dest=/home/vagrant/.gitconfig backup=yes
 
+    # guest additions
+    - name: rebuild vboxadd
+      command: /etc/init.d/vboxadd setup
+      sudo: yes
+
   handlers:
     - name: restart apache
       service: name=httpd state=restarted
